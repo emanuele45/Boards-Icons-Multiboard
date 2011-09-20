@@ -1,0 +1,391 @@
+<?xml version="1.0"?>
+<!DOCTYPE modification SYSTEM "http://www.simplemachines.org/xml/modification">
+<modification xmlns="http://www.simplemachines.org/xml/modification" xmlns:smf="http://www.simplemachines.org/">
+
+	<id>emanuele:bi_multiboard</id>
+	<version>0.1.0</version>
+
+	<file name="$sourcedir/ManageSmileys.php">
+		<operation>
+			<search position="replace"><![CDATA[
+	$last_icon = 0;
+	$trueOrder = 0;
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		$context['icons'][$row['id_icon']] = array(
+			'id' => $row['id_icon'],
+			'title' => $row['title'],
+			'filename' => $row['filename'],
+			'image_url' => $settings[file_exists($settings['theme_dir'] . '/images/post/' . $row['filename'] . '.gif') ? 'actual_images_url' : 'default_images_url'] . '/post/' . $row['filename'] . '.gif',
+			'board_id' => $row['id_board'],
+			'board' => empty($row['board_name']) ? $txt['icons_edit_icons_all_boards'] : $row['board_name'],
+			'order' => $row['icon_order'],
+			'true_order' => $trueOrder++,
+			'after' => $last_icon,
+		);
+		$last_icon = $row['id_icon'];
+	}
+	$smcFunc['db_free_result']($request);
+]]></search>
+			<add><![CDATA[
+
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		$icon_code = base64_encode($row['filename']);
+		if(isset($context['icons'][$icon_code]['board_id']))
+		{
+			$old_boards = $context['icons'][$icon_code]['board_id'];
+			$old_view = $context['icons'][$icon_code]['view_in_all'];
+		}
+		else
+		{
+			$old_boards = null;
+			$old_view = null;
+		}
+
+		$icon_ids[$icon_code][$row['id_board']] = $row['id_icon'];
+		$context['icons'][$icon_code] = array(
+			'id' => $row['id_icon'],
+			'icon_code' => $icon_code,
+			'title' => $row['title'],
+			'filename' => $row['filename'],
+			'image_url' => $settings[file_exists($settings['theme_dir'] . '/images/post/' . $row['filename'] . '.gif') ? 'actual_images_url' : 'default_images_url'] . '/post/' . $row['filename'] . '.gif',
+			'board_id' => $row['id_board'],
+			'board' => empty($row['board_name']) ? $txt['icons_edit_icons_all_boards'] : $row['board_name'],
+			'order' => $row['icon_order'],
+		);
+
+		if (isset($old_view))
+			$context['icons'][$icon_code]['view_in_all'] = empty($row['id_board']) ? true : $old_view;
+		else
+			$context['icons'][$icon_code]['view_in_all'] = empty($row['id_board']);
+
+		if (isset($old_boards) && is_array($old_boards))
+		{
+			$context['icons'][$icon_code]['board_id'] = $old_boards;
+			$context['icons'][$icon_code]['board_id'][] = $row['id_board'];
+		}
+		else
+			$context['icons'][$icon_code]['board_id'] = array($row['id_board']);
+	}
+	$smcFunc['db_free_result']($request);
+
+	$last_icon = 0;
+	$trueOrder = 0;
+	foreach ($context['icons'] as $id => $data)
+	{
+		$context['icons'][$id]['true_order'] = $trueOrder++;
+		$context['icons'][$id]['after'] = $last_icon;
+		$last_icon = $id;
+	}
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+		// Deleting icons?
+		if (isset($_POST['delete']) && !empty($_POST['checked_icons']))
+		{
+			$deleteIcons = array();
+			foreach ($_POST['checked_icons'] as $icon)
+				$deleteIcons[] = (int) $icon;
+]]></search>
+			<add><![CDATA[
+		// No boards selected? ..at all? Then it's useless
+		if (empty($_POST['icon_view_in_all']) && empty($_POST['boardaccess']))
+		{
+			$_POST['delete'] = true;
+			$_POST['checked_icons'] = array($_GET['icon_name']);
+		}
+
+		// Deleting icons?
+		if (isset($_POST['delete']) && !empty($_POST['checked_icons']))
+		{
+			$deleteIcons = array();
+			foreach ($_POST['checked_icons'] as $icon)
+				if (isset($context['icons'][$icon]['ids']))
+					foreach ($context['icons'][$icon]['ids'] as $icon_id)
+						$deleteIcons[] = $icon_id;
+			$deleteIcons = array_unique($deleteIcons);
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+		elseif ($context['sub_action'] == 'editicon' && isset($_GET['icon']))
+		{
+			$_GET['icon'] = (int) $_GET['icon'];
+
+			// Do some preperation with the data... like check the icon exists *somewhere*
+]]></search>
+			<add><![CDATA[
+		elseif ($context['sub_action'] == 'editicon' && isset($_GET['icon_name']))
+		{
+
+			// Do some preperation with the data... like check the icon exists *somewhere*
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+			elseif ($_POST['icon_location'] == $_GET['icon'] && !empty($_GET['icon']))
+				fatal_lang_error('icon_after_itself');
+
+			// First do the sorting... if this is an edit reduce the order of everything after it by one ;)
+			if ($_GET['icon'] != 0)
+			{
+				$oldOrder = $context['icons'][$_GET['icon']]['true_order'];
+]]></search>
+			<add><![CDATA[
+			elseif ($_POST['icon_location'] == $_GET['icon_name'] && !empty($_GET['icon_name']))
+				fatal_lang_error('icon_after_itself');
+
+			// First do the sorting... if this is an edit reduce the order of everything after it by one ;)
+			if (!empty($_GET['icon_name']))
+			{
+				$oldOrder = $context['icons'][$_GET['icon_name']]['true_order'];
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+			// If there are no existing icons and this is a new one, set the id to 1 (mainly for non-mysql)
+			if (empty($_GET['icon']) && empty($context['icons']))
+				$_GET['icon'] = 1;
+
+			// Get the new order.
+			$newOrder = $_POST['icon_location'] == 0 ? 0 : $context['icons'][$_POST['icon_location']]['true_order'] + 1;
+]]></search>
+			<add><![CDATA[
+			// Get the new order.
+			$newOrder = empty($_POST['icon_location']) ? 0 : $context['icons'][$_POST['icon_location']]['true_order'] + 1;
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+			$context['icons'][$_GET['icon']]['true_order'] = $newOrder;
+
+			// Simply replace the existing data for the other bits.
+			$context['icons'][$_GET['icon']]['title'] = $_POST['icon_description'];
+			$context['icons'][$_GET['icon']]['filename'] = $_POST['icon_filename'];
+			$context['icons'][$_GET['icon']]['board_id'] = (int) $_POST['icon_board'];
+]]></search>
+			<add><![CDATA[
+			$context['icons'][$_GET['icon_name']]['true_order'] = $newOrder;
+
+			// Simply replace the existing data for the other bits.
+			$context['icons'][$_GET['icon_name']]['title'] = $_POST['icon_description'];
+			$context['icons'][$_GET['icon_name']]['filename'] = $_POST['icon_filename'];
+
+			$actual_boards = &$context['icons'][$_GET['icon_name']]['board_id'];
+			$new_boards = $_POST['boardaccess'];
+			if(isset($_POST['icon_view_in_all']))
+				$new_boards[] = 0;
+
+			$toRemove = array();
+			foreach ($actual_boards as $board)
+				if (!in_array($board, $new_boards))
+					$toRemove[] = $board;
+
+			foreach ($new_boards as $board)
+				$icon_ids[$_GET['icon_name']][$board] = !empty($icon_ids[$_GET['icon_name']][$board]) ? $icon_ids[$_GET['icon_name']][$board] : 0;
+			foreach ($toRemove as $board)
+				if (isset($icon_ids[$_GET['icon_name']][$board]))
+					unset($icon_ids[$_GET['icon_name']][$board]);
+
+			$actual_boards = $new_boards;
+
+			if (!empty($toRemove))
+				$smcFunc['db_query']('', '
+					DELETE FROM {db_prefix}message_icons
+					WHERE filename = {string:filename}
+						AND id_board IN ({array_int:board_ids})',
+					array(
+						'filename' => base64_decode($_GET['icon_name']),
+						'board_ids' => $toRemove,
+				));
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+			foreach ($context['icons'] as $id => $icon)
+			{
+				if ($id != 0)
+				{
+					$iconInsert[] = array($id, $icon['board_id'], $icon['title'], $icon['filename'], $icon['true_order']);
+				}
+				else
+				{
+					$iconInsert_new[] = array($icon['board_id'], $icon['title'], $icon['filename'], $icon['true_order']);
+				}
+			}
+]]></search>
+			<add><![CDATA[
+			foreach ($icon_ids as $id => $icon)
+			{
+				$short = $context['icons'][$id];
+				foreach ($icon as $board_id => $icon_id)
+				{
+					if (!empty($icon_id))
+						$iconInsert[] = array($icon_id, $board_id, $short['title'], $short['filename'], $short['true_order']);
+					else
+						$iconInsert_new[] = array($board_id, $short['title'], $short['filename'], $short['true_order']);
+				}
+			}
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+						'format' => '<a href="' . $scripturl . '?action=admin;area=smileys;sa=editicon;icon=%1$s">' . $txt['smileys_modify'] . '</a>',
+						'params' => array(
+							'id_icon' => false,
+]]></search>
+			<add><![CDATA[
+						'format' => '<a href="' . $scripturl . '?action=admin;area=smileys;sa=editicon;icon_name=%1$s">' . $txt['smileys_modify'] . '</a>',
+						'params' => array(
+							'icon_name' => false,
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+						'format' => '<input type="checkbox" name="checked_icons[]" value="%1$d" class="input_check" />',
+						'params' => array(
+							'id_icon' => false,
+]]></search>
+			<add><![CDATA[
+						'format' => '<input type="checkbox" name="checked_icons[]" value="%1$s" class="input_check" />',
+						'params' => array(
+							'icon_name' => false,
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+		$context['new_icon'] = !isset($_GET['icon']);
+
+		// Get the properties of the current icon from the icon list.
+		if (!$context['new_icon'])
+			$context['icon'] = $context['icons'][$_GET['icon']];
+]]></search>
+			<add><![CDATA[
+		$context['new_icon'] = !isset($_GET['icon_name']);
+
+		// Get the properties of the current icon from the icon list.
+		if (!$context['new_icon'])
+			$context['icon'] = $context['icons'][$_GET['icon_name']];
+]]></add>
+		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+		$context['categories'] = getBoardList($boardListOptions);
+]]></search>
+			<add><![CDATA[
+		// Now, let's sort the list of categories into the boards for templates that like that.
+		$temp_boards = array();
+		foreach ($context['categories'] as $category)
+		{
+			$temp_boards[] = array(
+				'name' => $category['name'],
+				'child_ids' => array_keys($category['boards'])
+			);
+			$temp_boards = array_merge($temp_boards, array_values($category['boards']));
+
+			// Include a list of boards per category for easy toggling.
+			$context['categories'][$category['id']]['child_ids'] = array_keys($category['boards']);
+		}
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$sourcedir/Subs-MessageIndex.php">
+		<operation>
+			<search position="replace"><![CDATA[
+			$return_value[$row['id_cat']]['boards'][] = array(
+				'id' => $row['id_board'],
+				'name' => $row['board_name'],
+				'child_level' => $row['child_level'],
+				'selected' => isset($boardListOptions['selected_board']) && $boardListOptions['selected_board'] == $row['id_board'],
+]]></search>
+			<add><![CDATA[
+			$return_value[$row['id_cat']]['boards'][$row['id_board']] = array(
+				'id' => $row['id_board'],
+				'name' => $row['board_name'],
+				'child_level' => $row['child_level'],
+				'selected' => isset($boardListOptions['selected_board']) && ((is_array($boardListOptions['selected_board']) && in_array($row['id_board'], $boardListOptions['selected_board'])) || ($boardListOptions['selected_board'] == $row['id_board'])),
+]]></add>
+		</operation>
+	</file>
+
+	<file name="$themedir/ManageSmileys.template.php">
+		<operation>
+			<search position="replace"><![CDATA[
+		<form action="', $scripturl, '?action=admin;area=smileys;sa=editicon;icon=', $context['new_icon'] ? '0' : $context['icon']['id'], '" method="post" accept-charset="', $context['character_set'], '">
+]]></search>
+			<add><![CDATA[
+		<form action="', $scripturl, '?action=admin;area=smileys;sa=editicon;icon_name=', $context['new_icon'] ? '0' : $context['icon']['icon_code'], '" method="post" accept-charset="', $context['character_set'], '">
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+							<select name="icon_board" id="icon_board_select">
+								<option value="0"', empty($context['icon']['board_id']) ? ' selected="selected"' : '', '>', $txt['icons_edit_icons_all_boards'], '</option>';
+
+	foreach ($context['categories'] as $category)
+	{
+		echo '
+								<optgroup label="', $category['name'], '">';
+		foreach ($category['boards'] as $board)
+			echo '
+									<option value="', $board['id'], '"', $board['selected'] ? ' selected="selected"' : '', '>', $board['child_level'] > 0 ? str_repeat('==', $board['child_level'] - 1) . '=&gt;' : '', ' ', $board['name'], '</option>';
+		echo '
+								</optgroup>';
+	}
+	echo '
+							</select>
+]]></search>
+			<add><![CDATA[
+							<label for="icon_view_in_all"><input type="checkbox" name="icon_view_in_all" id="icon_view_in_all" ', !empty($context['icon']['view_in_all']) ? 'checked="checked" ' : '', 'class="input_check" />', $txt['icons_show_in_all_all'],'</label><br />
+							<fieldset id="message_icons_boards">
+								<legend><a href="javascript:void(0);" onclick="document.getElementById(\'message_icons_boards\').style.display = \'none\';document.getElementById(\'message_icons_boards_link\').style.display = \'block\'; return false;">', $txt['icons_boards_desc'], '</a></legend>
+								<ul class="ignoreboards floatleft">';
+
+	foreach ($context['categories'] as $category)
+	{
+		echo '
+									<li class="category">
+										<a href="javascript:void(0);" onclick="selectBoards([', implode(', ', $category['child_ids']), ']); return false;">', $category['name'], '</a>
+									<ul>';
+		foreach ($category['boards'] as $board)
+			echo '
+										<li class="board" style="margin-', $context['right_to_left'] ? 'right' : 'left', ': ', $board['child_level'], 'em;">
+											<input type="checkbox" name="boardaccess[]" id="brd', $board['id'], '" value="', $board['id'], '" ', $board['selected'] ? ' checked="checked" ' : '', ' class="input_check" /> <label for="brd', $board['id'], '">', $board['name'], '</label>
+										</li>';
+		echo '
+									</ul>
+									<script type="text/javascript"><!-- // --><![CD', 'ATA[
+										function selectBoards(ids)
+										{
+											var toggle = true;
+
+											for (i = 0; i < ids.length; i++)
+												toggle = toggle & document.getElementById(["brd" + ids[i]]).checked;
+
+											for (i = 0; i < ids.length; i++)
+												document.getElementById(["brd" + ids[i]]).checked = !toggle;
+										}
+									// ]', ']></script>';
+	}
+	echo '
+							</fieldset>
+							<a href="javascript:void(0);" onclick="document.getElementById(\'message_icons_boards\').style.display = \'block\'; document.getElementById(\'message_icons_boards_link\').style.display = \'none\'; return false;" id="message_icons_boards_link" style="display: none;">[ ', $txt['icons_select_usable_boards'], ' ]</a>
+							<script type="text/javascript"><!-- // --><![CDA', 'TA[
+								document.getElementById("message_icons_boards_link").style.display = "";
+								document.getElementById("message_icons_boards").style.display = "none";
+							// ]', ']></script>
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+		if (empty($context['icon']['id']) || $id != $context['icon']['id'])
+]]></search>
+			<add><![CDATA[
+		if (empty($context['icon']['icon_code']) || $id != $context['icon']['icon_code'])
+]]></add>
+		</operation>
+	</file>
+</modification>
