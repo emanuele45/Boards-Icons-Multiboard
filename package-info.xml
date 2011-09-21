@@ -7,20 +7,14 @@
 	<version>0.1.0</version>
 	<type>modification</type>
 
-	<install for="2.0">
+	<install for="2.0 - 2.0.99">
 		<modification>modification.xml</modification>
 		<modification>lang.xml</modification>
 		<modification>lang-UTF8.xml</modification>
-<!-- 		<database>installScript.php</database> -->
-<!-- 		<code>installHooks.php</code> -->
-<!-- 		<require-file name="Subs-BoardiconsMultiboard.php" destination="$sourcedir" /> -->
-<!-- 		<redirect url="?action=admin;area=featuresettings;sa=sig" /> -->
 	</install>
-	<uninstall for="2.0">
+	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modification.xml</modification>
 		<modification reverse="true">lang.xml</modification>
 		<modification reverse="true">lang-UTF8.xml</modification>
-<!-- 		<database reverse="true">installScript.php</database> -->
-<!-- 		<code>installHooks.php</code> -->
 	</uninstall>
 </package-info>
