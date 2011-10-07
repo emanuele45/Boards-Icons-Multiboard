@@ -16,5 +16,6 @@
 		<modification reverse="true">modification.xml</modification>
 		<modification reverse="true">lang.xml</modification>
 		<modification reverse="true">lang-UTF8.xml</modification>
+		<code>uninstallScript.php</code>
 	</uninstall>
 </package-info>

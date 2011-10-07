@@ -90,8 +90,8 @@
 				$deleteIcons[] = (int) $icon;
 ]]></search>
 			<add><![CDATA[
-		// No boards selected? ..at all? Then it's useless
-		if (empty($_POST['icon_view_in_all']) && empty($_POST['boardaccess']))
+		// No boards selected? ..at all? Than it's useless. Of course only if we come from the correct place
+		if (empty($_POST['icon_view_in_all']) && empty($_POST['boardaccess']) && isset($_POST['icon_filename']))
 		{
 			$_POST['delete'] = true;
 			$_POST['checked_icons'] = array($_GET['icon_name']);
@@ -106,6 +106,14 @@
 					foreach ($context['icons'][$icon]['ids'] as $icon_id)
 						$deleteIcons[] = $icon_id;
 			$deleteIcons = array_unique($deleteIcons);
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+					'value' => $txt['icons_board'],
+]]></search>
+			<add><![CDATA[
+					'value' => $txt['admin_boards'],
 ]]></add>
 		</operation>
 		<operation>
@@ -290,6 +298,53 @@
 		}
 ]]></add>
 		</operation>
+		<operation>
+			<search position="before"><![CDATA[
+function list_getMessageIcons($start, $items_per_page, $sort)
+{
+	global $smcFunc, $user_info]]></search>
+			<add><![CDATA[, $txt]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+		$message_icons[] = $row;
+	$smcFunc['db_free_result']($request);
+]]></search>
+			<add><![CDATA[
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		$icon_id = base64_encode($row['filename']);
+		$boards_names = isset($message_icons[$icon_id]['board_name']) ? $message_icons[$icon_id]['board_name'] : '';
+
+		if(isset($message_icons[$icon_id]['id_board']))
+			$prev_boards = $message_icons[$icon_id]['id_board'];
+		else
+			unset($prev_boards);
+		if(isset($message_icons[$icon_id]['view_in_all']))
+			$view_in_all = $message_icons[$icon_id]['view_in_all'];
+		else
+			$view_in_all = false;
+
+		$message_icons[$icon_id] = $row;
+		$message_icons[$icon_id]['icon_name'] = base64_encode($row['filename']);
+		$message_icons[$icon_id]['view_in_all'] = empty($row['id_board']) || $view_in_all;
+		$message_icons[$icon_id]['board_name'] = $message_icons[$icon_id]['view_in_all'] ? $txt['icons_edit_icons_all_boards'] : (!empty($boards_names) ? $boards_names . '<br />' : '') . $row['board_name'];
+
+		if (isset($prev_boards))
+		{
+			$message_icons[$icon_id]['id_board'] = $prev_boards;
+			if (!empty($row['id_board']))
+				$message_icons[$icon_id]['id_board'][] = $row['id_board'];
+		}
+		else
+			$message_icons[$icon_id]['id_board'] = array($row['id_board']);
+
+	}
+	$smcFunc['db_free_result']($request);
+]]></add>
+		</operation>
+
 	</file>
 
 	<file name="$sourcedir/Subs-MessageIndex.php">
@@ -339,7 +394,7 @@
 							</select>
 ]]></search>
 			<add><![CDATA[
-							<label for="icon_view_in_all"><input type="checkbox" name="icon_view_in_all" id="icon_view_in_all" ', !empty($context['icon']['view_in_all']) ? 'checked="checked" ' : '', 'class="input_check" />', $txt['icons_show_in_all_all'],'</label><br />
+							<label for="icon_view_in_all"><input type="checkbox" name="icon_view_in_all" id="icon_view_in_all" ', !empty($context['icon']['view_in_all']) ? 'checked="checked" ' : '', 'class="input_check" />', $txt['icons_edit_icons_all_boards'],'</label><br />
 							<fieldset id="message_icons_boards">
 								<legend><a href="javascript:void(0);" onclick="document.getElementById(\'message_icons_boards\').style.display = \'none\';document.getElementById(\'message_icons_boards_link\').style.display = \'block\'; return false;">', $txt['icons_boards_desc'], '</a></legend>
 								<ul class="ignoreboards floatleft">';

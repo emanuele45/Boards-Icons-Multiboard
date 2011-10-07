@@ -11,7 +11,6 @@
 			<add><![CDATA[
 $txt['icons_boards_desc'] = 'Boards the icon can be used';
 $txt['icons_select_usable_boards'] = 'Show boards';
-$txt['icons_show_in_all_all'] = 'Show in all boards';
 ]]></add>
 		</operation>
 	</file>
