@@ -1,4 +1,15 @@
-<?php 
+<?php
+/**
+ * Board Icons Multiboard (BIM)
+ *
+ * @package BIM
+ * @author emanuele
+ * @copyright 2011 emanuele, Simple Machines
+ * @license http://www.simplemachines.org/about/smf/license.php BSD
+ *
+ * @version 0.1.0
+ */
+
 // If we have found SSI.php and we are outside of SMF, then we are running standalone.
 if (file_exists(dirname(__FILE__) . '/SSI.php') && !defined('SMF'))
 	require_once(dirname(__FILE__) . '/SSI.php');
@@ -39,4 +50,7 @@ $smcFunc['db_insert']('replace',
 	$iconInsert,
 	array('id_icon')
 );
+
+if (SMF == 'SSI')
+	echo 'Database adaptation successful!';
 ?>

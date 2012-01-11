@@ -6,16 +6,27 @@
 	<name>Board Icons Multiboard</name>
 	<version>0.1.0</version>
 	<type>modification</type>
-
+	<license>
+<!--
+/**
+ * Board Icons Multiboard (BIM)
+ *
+ * @package BIM
+ * @author emanuele
+ * @copyright 2011 emanuele, Simple Machines
+ * @license http://www.simplemachines.org/about/smf/license.php BSD
+ *
+ * @version 0.1.0
+ */
+-->
+	</license>
 	<install for="2.0 - 2.0.99">
 		<modification>modification.xml</modification>
 		<modification>lang.xml</modification>
-		<modification>lang-UTF8.xml</modification>
 	</install>
 	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modification.xml</modification>
 		<modification reverse="true">lang.xml</modification>
-		<modification reverse="true">lang-UTF8.xml</modification>
 		<code>uninstallScript.php</code>
 	</uninstall>
 </package-info>
