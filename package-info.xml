@@ -23,10 +23,12 @@
 	<install for="2.0 - 2.0.99">
 		<modification>modification.xml</modification>
 		<modification>lang.xml</modification>
+		<redirect url="?action=admin;area=packages;sa=browse" />
 	</install>
 	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modification.xml</modification>
 		<modification reverse="true">lang.xml</modification>
 		<code>uninstallScript.php</code>
+		<redirect url="?action=admin;area=packages;sa=browse" />
 	</uninstall>
 </package-info>

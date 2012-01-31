@@ -225,15 +225,17 @@
 			$context['icons'][$current_icon]['title'] = $_POST['icon_description'];
 			$context['icons'][$current_icon]['filename'] = $_POST['icon_filename'];
 
-			$actual_boards = &$context['icons'][$current_icon]['board_id'];
-			$new_boards = $_POST['boardaccess'];
+			$current_boards = &$context['icons'][$current_icon]['board_id'];
+			if (isset($_POST['boardaccess']))
+				$new_boards = $_POST['boardaccess'];
 			if(isset($_POST['icon_view_in_all']))
 				$new_boards[] = 0;
 
 			$toRemove = array();
-			foreach ($actual_boards as $board)
-				if (!in_array($board, $new_boards))
-					$toRemove[] = $board;
+			if (!empty($current_boards))
+				foreach ($current_boards as $board)
+					if (!in_array($board, $new_boards))
+						$toRemove[] = $board;
 
 			foreach ($new_boards as $board)
 				$icon_ids[$current_icon][$board] = !empty($icon_ids[$current_icon][$board]) ? $icon_ids[$current_icon][$board] : 0;
@@ -241,7 +243,7 @@
 				if (isset($icon_ids[$current_icon][$board]))
 					unset($icon_ids[$current_icon][$board]);
 
-			$actual_boards = $new_boards;
+			$current_boards = $new_boards;
 
 			if (!empty($toRemove))
 				$smcFunc['db_query']('', '
@@ -358,7 +360,7 @@ function list_getMessageIcons($start, $items_per_page, $sort)
 			<add><![CDATA[
 	while ($row = $smcFunc['db_fetch_assoc']($request))
 	{
-		$icon_id = urlencode(base64_encode($row['filename']));
+		$icon_id = $row['filename'];
 		$boards_names = isset($message_icons[$icon_id]['board_name']) ? $message_icons[$icon_id]['board_name'] : '';
 
 		if(isset($message_icons[$icon_id]['id_board']))
