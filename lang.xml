@@ -24,6 +24,7 @@
 			<add><![CDATA[
 $txt['icons_boards_desc'] = 'Boards the icon can be used';
 $txt['icons_select_usable_boards'] = 'Show boards';
+$txt['messageicon_delete_confirm'] = 'This will delete the message icon, are you sure?';
 ]]></add>
 		</operation>
 	</file>

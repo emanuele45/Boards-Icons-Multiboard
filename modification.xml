@@ -321,7 +321,12 @@
 
 		// Get the properties of the current icon from the icon list.
 		if (!$context['new_icon'])
-			$context['icon'] = $context['icons'][$current_icon];
+		{
+			if (isset($context['icons'][$current_icon]))
+				$context['icon'] = $context['icons'][$current_icon];
+			else
+				$context['new_icon'] = true;
+		}
 ]]></add>
 		</operation>
 		<operation>
@@ -418,7 +423,7 @@ function list_getMessageIcons($start, $items_per_page, $sort)
 		<form action="', $scripturl, '?action=admin;area=smileys;sa=editicon;icon=', $context['new_icon'] ? '0' : $context['icon']['id'], '" method="post" accept-charset="', $context['character_set'], '">
 ]]></search>
 			<add><![CDATA[
-		<form action="', $scripturl, '?action=admin;area=smileys;sa=editicon;icon_name=', $context['new_icon'] ? '0' : $context['icon']['icon_code'], '" method="post" accept-charset="', $context['character_set'], '">
+		<form id="messageIcons" name="messageIcons" action="', $scripturl, '?action=admin;area=smileys;sa=editicon;icon_name=', $context['new_icon'] ? '0' : $context['icon']['icon_code'], '" method="post" accept-charset="', $context['character_set'], '">
 ]]></add>
 		</operation>
 		<operation>
@@ -451,31 +456,33 @@ function list_getMessageIcons($start, $items_per_page, $sort)
 		echo '
 									<li class="category">
 										<a href="javascript:void(0);" onclick="selectBoards([', implode(', ', $category['child_ids']), ']); return false;">', $category['name'], '</a>
-									<ul>';
+										<ul>';
 		foreach ($category['boards'] as $board)
 		{
 			echo '
-										<li class="board" style="margin-', $context['right_to_left'] ? 'right' : 'left', ': ', $board['child_level'], 'em;">
-											<input type="checkbox" name="boardaccess[]" id="brd', $board['id'], '" value="', $board['id'], '" ', $board['selected'] ? ' checked="checked" ' : '', ' class="input_check" /> <label for="brd', $board['id'], '">', $board['name'], '</label>
-										</li>';
+											<li class="board" style="margin-', $context['right_to_left'] ? 'right' : 'left', ': ', $board['child_level'], 'em;">
+												<input type="checkbox" name="boardaccess[]" id="brd', $board['id'], '" value="', $board['id'], '" ', $board['selected'] ? ' checked="checked" ' : '', ' class="input_check" /> <label for="brd', $board['id'], '">', $board['name'], '</label>
+											</li>';
 			$display_boards = $display_boards || $board['selected'];
 		}
 		echo '
-									</ul>
-									<script type="text/javascript"><!-- // --><![CD', 'ATA[
-										function selectBoards(ids)
-										{
-											var toggle = true;
+										</ul>
+										<script type="text/javascript"><!-- // --><![CD', 'ATA[
+											function selectBoards(ids)
+											{
+												var toggle = true;
 
-											for (i = 0; i < ids.length; i++)
-												toggle = toggle & document.getElementById(["brd" + ids[i]]).checked;
+												for (i = 0; i < ids.length; i++)
+													toggle = toggle & document.getElementById(["brd" + ids[i]]).checked;
 
-											for (i = 0; i < ids.length; i++)
-												document.getElementById(["brd" + ids[i]]).checked = !toggle;
-										}
-									// ]', ']></script>';
+												for (i = 0; i < ids.length; i++)
+													document.getElementById(["brd" + ids[i]]).checked = !toggle;
+											}
+										// ]', ']></script>
+									</li>';
 	}
 	echo '
+								</ul>
 							</fieldset>
 							<a href="javascript:void(0);" onclick="document.getElementById(\'message_icons_boards\').style.display = \'block\'; document.getElementById(\'message_icons_boards_link\').style.display = \'none\'; return false;" id="message_icons_boards_link" style="display: none;">[ ', $txt['icons_select_usable_boards'], ' ]</a>
 							<script type="text/javascript"><!-- // --><![CDA', 'TA[', '
@@ -490,6 +497,31 @@ function list_getMessageIcons($start, $items_per_page, $sort)
 ]]></search>
 			<add><![CDATA[
 		if (empty($context['icon']['icon_code']) || $id != $context['icon']['icon_code'])
+]]></add>
+		</operation>
+		<operation>
+			<search position="replace"><![CDATA[
+					<input type="submit" value="', $txt['smileys_save'], '" class="button_submit" />
+					<input type="hidden" name="', $context['session_var'], '" value="', $context['session_id'], '" />
+]]></search>
+			<add><![CDATA[
+					<input type="submit" value="', $txt['smileys_save'], '" onclick="return delConf();" class="button_submit" />
+					<input type="hidden" name="', $context['session_var'], '" value="', $context['session_id'], '" />
+					<script type="text/javascript"><!-- // --><![CD', 'ATA[
+						function delConf()
+						{
+							var all = document.getElementById(\'icon_view_in_all\');
+							var boards = document.getElementsByName(\'boardaccess\');
+							if (all.checked)
+								return true;
+
+							for (var i = 0;i < boards.length; i++)
+								if (boards[i].checked)
+									return true;
+
+							return confirm(\'', $txt['messageicon_delete_confirm'], '\');
+						}
+					// ]', ']></script>
 ]]></add>
 		</operation>
 	</file>
