@@ -511,7 +511,7 @@ function list_getMessageIcons($start, $items_per_page, $sort)
 						function delConf()
 						{
 							var all = document.getElementById(\'icon_view_in_all\');
-							var boards = document.getElementsByName(\'boardaccess\');
+							var boards = document.getElementsByName(\'boardaccess[]\');
 							if (all.checked)
 								return true;
 

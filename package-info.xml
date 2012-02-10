@@ -23,7 +23,7 @@
 	<install for="2.0 - 2.0.99">
 		<modification>modification.xml</modification>
 		<modification>lang.xml</modification>
-		<redirect url="?action=admin;area=packages;sa=browse" />
+		<redirect url="?action=admin;area=smileys;sa=settings" />
 	</install>
 	<uninstall for="2.0 - 2.0.99">
 		<modification reverse="true">modification.xml</modification>
